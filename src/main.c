@@ -209,7 +209,7 @@ int main(void)
 
 			case WAIT_RELEASE:
 			// Valid pressed + Rising edge meaning the button has been pressed
-			if ((GPIOB->IDR & GPIO_IDR_ID0_Msk) == 1)
+			if ((GPIOA->IDR & GPIO_IDR_ID10_Msk) == 1)
 			{
 				lightOutput ^= 1;
 				timeStamp = msTick; 
