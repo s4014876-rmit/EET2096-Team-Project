@@ -473,6 +473,21 @@
               <FileType>1</FileType>
               <FilePath>.\src\gpioControl.c</FilePath>
             </File>
+            <File>
+              <FileName>hms.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\hms.c</FilePath>
+            </File>
+            <File>
+              <FileName>systick.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\systick.c</FilePath>
+            </File>
+            <File>
+              <FileName>uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\uart.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -517,6 +532,21 @@
               <FileName>stm32f4xx_it.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\inc\stm32f4xx_it.h</FilePath>
+            </File>
+            <File>
+              <FileName>hms.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\inc\hms.h</FilePath>
+            </File>
+            <File>
+              <FileName>systick.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\inc\systick.h</FilePath>
+            </File>
+            <File>
+              <FileName>uart.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\inc\uart.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -1012,6 +1042,21 @@
               <FileType>1</FileType>
               <FilePath>.\src\gpioControl.c</FilePath>
             </File>
+            <File>
+              <FileName>hms.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\hms.c</FilePath>
+            </File>
+            <File>
+              <FileName>systick.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\systick.c</FilePath>
+            </File>
+            <File>
+              <FileName>uart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\uart.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1056,6 +1101,21 @@
               <FileName>stm32f4xx_it.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\inc\stm32f4xx_it.h</FilePath>
+            </File>
+            <File>
+              <FileName>hms.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\inc\hms.h</FilePath>
+            </File>
+            <File>
+              <FileName>systick.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\inc\systick.h</FilePath>
+            </File>
+            <File>
+              <FileName>uart.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\inc\uart.h</FilePath>
             </File>
           </Files>
         </Group>

@@ -11,25 +11,15 @@
 #include "boardSupport.h"
 #include "main.h"
 
+#include "systick.h"
+
 typedef enum {
     IDLE,
     DEBOUNCE,
     WAIT_RELEASE,
     LOCKOUT
 } SwitchState_t;
-//Global ms counter
-volatile uint32_t msTick = 0;
 
-//******************************************************************************//
-// Function: SysTick_Handler()
-// Input : None
-// Return : None
-// Description : Runs every 1ms and increment counter
-// *****************************************************************************//
-void SysTick_Handler(void)
-{
-	msTick++;
-}
 
 //******************************************************************************//
 // Function: configRCC()
@@ -100,18 +90,7 @@ void configGPIO()
 	GPIOB->AFR[1] |= (7 << 12);		//PB11 = AF7
 }
 
-//******************************************************************************//
-// Function: configSysTick()
-// Input : None
-// Return : None
-// Description : 
-// *****************************************************************************//
-void configSysTick(void)
-{
-	SysTick->LOAD = 167999;
-	SysTick->VAL = 0;
-	SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
-}
+
 
 //******************************************************************************//
 // Function: main()
