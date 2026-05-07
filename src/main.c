@@ -11,6 +11,12 @@
 #include "boardSupport.h"
 #include "main.h"
 
+typedef enum {
+    IDLE,
+    DEBOUNCE,
+    WAIT_RELEASE,
+    LOCKOUT
+} SwitchState_t;
 //Global ms counter
 volatile uint32_t msTick = 0;
 
