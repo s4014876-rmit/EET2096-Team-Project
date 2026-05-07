@@ -45,6 +45,55 @@ void configRCC()
 }
 
 //******************************************************************************//
+// Function: configADC3()
+// Input : None
+// Return : None
+// Description : Configuration for ADC3
+// *****************************************************************************//
+void configADC3()
+{
+	//Enable the perpheral interfacce
+	RCC->APB2ENR |= RCC_APB2ENR_ADC3EN;
+	
+	//Reset the peripheral interface
+	RCC->APB2RSTR |= RCC_APB2RSTR_ADCRST;
+	
+	//Wait for 2 cycles
+	__asm("NOP");
+	__asm("NOP");
+	
+	//Clear the reset
+	RCC->APB2RSTR &= ~(RCC_APB2RSTR_ADCRST);
+	
+	//Wait for 2 cycles
+	__asm("NOP");
+	__asm("NOP");
+	
+	//Disable the battery sensing channel
+	ADC123_COMMON->CCR &= (~ADC_CCR_VBATE);
+	
+	//ENable the temp control sensor channel
+	ADC123_COMMON->CCR |= (ADC_CCR_TSVREFE) | (0x03 << ADC_CCR_ADCPRE_Pos);
+	
+	//Disable scan mode and set the resolution bit to 12
+	ADC3->CR1 &= ~(ADC_CR1_SCAN | ADC_CR1_RES_Msk);
+	
+	//Alignment set to right & set single mode conversion
+	ADC3->CR2 &= ~(ADC_CR2_CONT | ADC_CR2_ALIGN  | ADC_CR2_SWSTART);
+	
+	//Set to a single channel 8
+	ADC3->SQR3 &= ~(ADC_SQR3_SQ1_Msk);
+	ADC3->SQR3 |= 0x08;
+	ADC3->SQR1 &= ~(ADC_SQR1_L_Msk);
+	
+	//Set the sample time registers to 56 cycles
+	ADC3->SMPR2 &= ~(ADC_SMPR2_SMP8_Msk);
+	ADC3->SMPR2 |= 0x03 << (ADC_SMPR2_SMP8_Pos);
+	
+	//Enable the ADC
+	ADC3->CR2 |= ADC_CR2_ADON;
+}
+//******************************************************************************//
 // Function: configGPIO()
 // Input : None
 // Return : None
@@ -225,7 +274,13 @@ int main(void)
 			}
 			break;
 	}
-		
+
+	//Light intensity sensor
+	if ((GPIOA->IDR & GPIO_IDR_ID8_Msk) == 0)
+	{
+		lightOutput = 0;
+	}
+	
 		
 	//Light switch toggle
 	if(lightOutput == 1)
