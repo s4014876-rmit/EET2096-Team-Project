@@ -124,7 +124,121 @@ int main(void)
 	
   while (1)
   {
+	switch(fanState)
+		{
+			case IDLE:
+			//Waiting for a falling edge & Pin is active LOW
+			if ((GPIOB->IDR & GPIO_IDR_ID0_Msk) == 0)
+			{
+				timeStamp = msTick;
+				fanState = DEBOUNCE;
+			}
+			break;
+			case DEBOUNCE:
+			// Button pressed but need to be confirmed if it's a real press or noise
+			// If pin released before 10ms considered as noise and reset
+			if ((GPIOB->IDR & GPIO_IDR_ID0_Msk) == 1)
+			{
+				fanState = IDLE;
+			}
+			if ((msTick - timeStamp) >= 10 && (GPIOB->IDR & GPIO_IDR_ID0_Msk) == 0)
+			{
+				fanState = WAIT_RELEASE;
+			}
+			break;
+
+			case WAIT_RELEASE:
+			// Valid pressed + Rising edge meaning the button has been pressed
+			if ((GPIOB->IDR & GPIO_IDR_ID0_Msk) == 1)
+			{
+				fanOutput ^= 1;
+				timeStamp = msTick; 
+				fanState = LOCKOUT;
+			}
+			break;
+
+			case LOCKOUT:
+			// Pressed has been registered now ignoring input for 2s
+			if ((msTick - timeStamp) >= 2000)
+			{
+			 fanState = IDLE;
+			}
+			break;
+		}
+	}
 	
+	//Check fanOutput to set or clear the ODR bit
+	if(fanOutput == 1)
+	{
+		GPIOB->ODR |= GPIO_ODR_OD1_Msk;
+	}
+	else
+	{
+		GPIOB->ODR &= ~(GPIO_ODR_OD1_Msk);
+	}
+	
+	
+	switch(lightState)
+	{
+			case IDLE:
+			if ((GPIOA->IDR & GPIO_IDR_ID10_Msk) == 0)
+			{
+				timeStamp = msTick;
+				lightState = DEBOUNCE;
+			}
+			break;
+			
+			case DEBOUNCE:
+			// Button pressed but need to be confirmed if it's a real press or noise
+			// If pin released before 10ms considered as noise and reset
+			if ((GPIOA->IDR & GPIO_IDR_ID10_Msk) == 1)
+			{
+				lightState = IDLE;
+			}
+			if ((msTick - timeStamp) >= 10 && (GPIOA->IDR & GPIO_IDR_ID10_Msk) == 0)
+			{
+				lightState = WAIT_RELEASE;
+			}
+			break;
+
+			case WAIT_RELEASE:
+			// Valid pressed + Rising edge meaning the button has been pressed
+			if ((GPIOB->IDR & GPIO_IDR_ID0_Msk) == 1)
+			{
+				lightOutput ^= 1;
+				timeStamp = msTick; 
+				lightState = LOCKOUT;
+			}
+			break;
+
+			case LOCKOUT:
+			// Pressed has been registered now ignoring input for 2s
+			if ((msTick - timeStamp) >= 2000)
+			{
+			 lightState = IDLE;
+			}
+			break;
+	}
+		
+		
+	//Light switch toggle
+	if(lightOutput == 1)
+	{
+		GPIOA->ODR |= GPIO_ODR_OD9_Msk;
+	}
+	else
+	{
+		GPIOA->ODR &= ~(GPIO_ODR_OD9_Msk);
+	}
+	
+	if(lightOutput == 1)
+	{
+		GPIOA->ODR |= GPIO_ODR_OD10_Msk;
+	}
+	else
+	{
+		GPIOA->ODR &= ~(GPIO_ODR_OD10_Msk);
+	}
   }
 } 
 
