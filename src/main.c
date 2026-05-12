@@ -111,14 +111,14 @@ void configGPIO()
 	GPIOB->MODER &= ~(GPIO_MODER_MODE8_Msk);
 	GPIOB->MODER |= (1 << GPIO_MODER_MODE8_Pos);
 	
-	GPIOF->MODER &= ~(GPIO_MODER_MODE1_Msk);
-	GPIOF->MODER |= (1 << GPIO_MODER_MODE1_Pos);
+	GPIOF->MODER &= ~(GPIO_MODER_MODE8_Msk);
+	GPIOF->MODER |= (1 << GPIO_MODER_MODE8_Pos);
 	
 	//Set all outputs to OFF initially
 	GPIOA->ODR &= ~(GPIO_ODR_OD9_Msk);
 	GPIOB->ODR &= ~(GPIO_ODR_OD1_Msk);
 	GPIOB->ODR &= ~(GPIO_ODR_OD8_Msk);
-	GPIOF->ODR &= ~(GPIO_ODR_OD1_Msk);
+	GPIOF->ODR &= ~(GPIO_ODR_OD8_Msk);
 	
 	//Alternate function 
 	GPIOB->MODER &= ~(GPIO_MODER_MODE10_Msk);
