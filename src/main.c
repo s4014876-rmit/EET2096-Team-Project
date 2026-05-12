@@ -83,6 +83,27 @@ void configADC3()
 	//Enable the ADC
 	ADC3->CR2 |= ADC_CR2_ADON;
 }
+
+//******************************************************************************//
+// Function: sampleTemp()
+// Input : None
+// Return : Current temp 
+// Description : 
+// *****************************************************************************//
+uint16_t sample(void)
+{
+	uint16_t currentTemp = 0;
+	
+	//Trigger & ADC conversion
+	ADC3->CR2 |= ADC_CR2_SWSTART;
+	
+	while ((ADC3->SR & ADC_SR_EOC) == 0x00);
+	currentTemp = (ADC3->DR & 0x0000FFFF);
+	
+	return currentTemp;
+}
+
+
 //******************************************************************************//
 // Function: configGPIO()
 // Input : None
@@ -132,14 +153,25 @@ void configGPIO()
 	GPIOF->PUPDR &= ~(GPIO_PUPDR_PUPD10_Msk);
 	
 	//Set AF7 for UART3
-	GPIOB->AFR[1] &= ~(0xF >> 8);
+	GPIOB->AFR[1] &= ~(0xF << 8);
 	GPIOB->AFR[1] |= (7 << 8);		//PB10 = AF7
 	
-	GPIOB->AFR[1] &= ~(0xF >> 12);
+	GPIOB->AFR[1] &= ~(0xF << 12);
 	GPIOB->AFR[1] |= (7 << 12);		//PB11 = AF7
 }
 
-
+//******************************************************************************//
+// Function: configSysTick()
+// Input : None
+// Return : None
+// Description : 
+// *****************************************************************************//
+void configSysTick(void)
+{
+	SysTick->LOAD = 167999;
+	SysTick->VAL = 0;
+	SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
+}
 
 //******************************************************************************//
 // Function: main()
@@ -152,13 +184,20 @@ int main(void)
 	configRCC();
 	configGPIO();
 	configSysTick();
+	configADC3();
 	
 	// Bring up the GPIO for the power regulators.
 	boardSupport_init();
 	
+	SwitchState_t fanState = IDLE;
+	SwitchState_t lightState = IDLE;
+	uint32_t timeStamp = 0;
+	uint8_t fanOutput = 0;
+	uint8_t lightOutput = 0;
+	
   while (1)
   {
-	switch(fanState)
+		switch(fanState)
 		{
 			case IDLE:
 			//Waiting for a falling edge & Pin is active LOW
@@ -171,7 +210,7 @@ int main(void)
 			case DEBOUNCE:
 			// Button pressed but need to be confirmed if it's a real press or noise
 			// If pin released before 10ms considered as noise and reset
-			if ((GPIOB->IDR & GPIO_IDR_ID0_Msk) == 1)
+			if ((GPIOB->IDR & GPIO_IDR_ID0_Msk) != 0)
 			{
 				fanState = IDLE;
 			}
@@ -183,7 +222,7 @@ int main(void)
 
 			case WAIT_RELEASE:
 			// Valid pressed + Rising edge meaning the button has been pressed
-			if ((GPIOB->IDR & GPIO_IDR_ID0_Msk) == 1)
+			if ((GPIOB->IDR & GPIO_IDR_ID0_Msk) != 0)
 			{
 				fanOutput ^= 1;
 				timeStamp = msTick; 
@@ -199,86 +238,103 @@ int main(void)
 			}
 			break;
 		}
-	}
-	
-	//Check fanOutput to set or clear the ODR bit
-	if(fanOutput == 1)
-	{
-		GPIOB->ODR |= GPIO_ODR_OD1_Msk;
-	}
-	else
-	{
-		GPIOB->ODR &= ~(GPIO_ODR_OD1_Msk);
-	}
-	
-	
-	switch(lightState)
-	{
-			case IDLE:
-			if ((GPIOA->IDR & GPIO_IDR_ID10_Msk) == 0)
-			{
-				timeStamp = msTick;
-				lightState = DEBOUNCE;
-			}
-			break;
-			
-			case DEBOUNCE:
-			// Button pressed but need to be confirmed if it's a real press or noise
-			// If pin released before 10ms considered as noise and reset
-			if ((GPIOA->IDR & GPIO_IDR_ID10_Msk) == 1)
-			{
-				lightState = IDLE;
-			}
-			if ((msTick - timeStamp) >= 10 && (GPIOA->IDR & GPIO_IDR_ID10_Msk) == 0)
-			{
-				lightState = WAIT_RELEASE;
-			}
-			break;
-
-			case WAIT_RELEASE:
-			// Valid pressed + Rising edge meaning the button has been pressed
-			if ((GPIOA->IDR & GPIO_IDR_ID10_Msk) == 1)
-			{
-				lightOutput ^= 1;
-				timeStamp = msTick; 
-				lightState = LOCKOUT;
-			}
-			break;
-
-			case LOCKOUT:
-			// Pressed has been registered now ignoring input for 2s
-			if ((msTick - timeStamp) >= 2000)
-			{
-			 lightState = IDLE;
-			}
-			break;
-	}
-
-	//Light intensity sensor
-	if ((GPIOA->IDR & GPIO_IDR_ID8_Msk) == 0)
-	{
-		lightOutput = 0;
-	}
-	
 		
-	//Light switch toggle
-	if(lightOutput == 1)
-	{
-		GPIOA->ODR |= GPIO_ODR_OD9_Msk;
+			//Check fanOutput to set or clear the ODR bit
+		if(fanOutput == 1)
+		{
+			GPIOB->ODR |= GPIO_ODR_OD1_Msk;
+		}
+		else
+		{
+			GPIOB->ODR &= ~(GPIO_ODR_OD1_Msk);
+		}
+		
+		
+		switch(lightState)
+		{
+				case IDLE:
+				if ((GPIOA->IDR & GPIO_IDR_ID10_Msk) == 0)
+				{
+					timeStamp = msTick;
+					lightState = DEBOUNCE;
+				}
+				break;
+				
+				case DEBOUNCE:
+				// Button pressed but need to be confirmed if it's a real press or noise
+				// If pin released before 10ms considered as noise and reset
+				if ((GPIOA->IDR & GPIO_IDR_ID10_Msk) != 0)
+				{
+					lightState = IDLE;
+				}
+				if ((msTick - timeStamp) >= 10 && (GPIOA->IDR & GPIO_IDR_ID10_Msk) == 0)
+				{
+					lightState = WAIT_RELEASE;
+				}
+				break;
+
+				case WAIT_RELEASE:
+				// Valid pressed + Rising edge meaning the button has been pressed
+				if ((GPIOA->IDR & GPIO_IDR_ID10_Msk) != 0)
+				{
+					lightOutput ^= 1;
+					timeStamp = msTick; 
+					lightState = LOCKOUT;
+				}
+				break;
+
+				case LOCKOUT:
+				// Pressed has been registered now ignoring input for 2s
+				if ((msTick - timeStamp) >= 2000)
+				{
+				 lightState = IDLE;
+				}
+				break;
+		}
+			
+		//Light intensity sensor
+		if ((GPIOA->IDR & GPIO_IDR_ID8_Msk) == 0)
+		{
+			lightOutput = 0;
+		}
+		
+		//Light switch toggle
+		if(lightOutput == 1)
+		{
+			GPIOA->ODR |= GPIO_ODR_OD9_Msk;
+		}
+		else
+		{
+			GPIOA->ODR &= ~(GPIO_ODR_OD9_Msk);
+		}
+
+		//Store result and convert to temp
+		uint16_t adcVal = sample();
+		float tempC = 55.0f - ((float)adcVal * 85.0f/4095.0f);
+		
+		//Auto-control logic
+		if (tempC < 22) 
+		{
+			//Heater ON, Cooling OFF, Fan ON
+			GPIOF->ODR |= (GPIO_ODR_OD8_Msk);	
+			GPIOB->ODR &= ~(GPIO_ODR_OD8_Msk);
+			GPIOB->ODR |= (GPIO_ODR_OD1_Msk);
+			
+		}
+		else if (tempC > 24)
+		{
+			//Heater OFF, Cooling ON, Fan ON
+			GPIOF->ODR &= ~(GPIO_ODR_OD8_Msk);
+			GPIOB->ODR |= (GPIO_ODR_OD8_Msk);
+			GPIOB->ODR |= (GPIO_ODR_OD1_Msk);
+		}
+		else
+		{
+			//BOTH OFF, Fan ON
+			GPIOF->ODR &= ~(GPIO_ODR_OD8_Msk);
+			GPIOB->ODR &= ~(GPIO_ODR_OD8_Msk);
+			GPIOB->ODR |= (GPIO_ODR_OD1_Msk);
+		}
 	}
-	else
-	{
-		GPIOA->ODR &= ~(GPIO_ODR_OD9_Msk);
-	}
-	
-	if(lightOutput == 1)
-	{
-		GPIOA->ODR |= GPIO_ODR_OD10_Msk;
-	}
-	else
-	{
-		GPIOA->ODR &= ~(GPIO_ODR_OD10_Msk);
-	}
-  }
 } 
 
