@@ -1,6 +1,10 @@
+#ifndef __UART_H__
+#define __UART_H__
+
 #include "uart.h"
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "stm32f439xx.h"
 #include "gpioControl.h"
@@ -48,46 +52,29 @@ void UART_Setup()
 
 	// Enable UART device and receiver.
 	USART3->CR1 |= USART_ENABLE_MASK;
-
 }
-
-
-
-
-
-void Temperature_String (char* buffer, double temperature)
-{
-	// Add the sign.
-	buffer[0] = (temperature > 0.0f) ? '+' : '-';
-	
-	// Intermediate values. Each should be a two digit integer.
-	uint8_t mantissa = (uint8_t) temperature;
-	uint8_t fraction = ((uint8_t)(temperature * 100.0f)) % (mantissa * 100);
-	
-	// Fill the string with the digits retrieved from the temperature variable.
-	buffer[1] = (mantissa / 10) + '0';
-	buffer[2] = (mantissa % 10) + '0';
-	buffer[3] = '.';
-	buffer[4] = (fraction / 10) + '0';
-	buffer[5] = (fraction % 10) + '0';
-}
-
-
-
 
 
 bool UART_Receive (uint8_t* byte)
 {
 	if (USART3->SR & USART_SR_RXNE) {
 		*input = (uint8_t) (USART3->DR & 0xFF);
+    return true;
+  } else {
+    return false;
   }
 }
 
 
-
-
-
 bool UART_Transmit (uint8_t byte)
 {
-  if (USART3->
+  if (USART3->SR & USART_SR_TXE) {
+    USART3->DR = byte;
+    return true;
+  } else {
+    return false;
+  }
 }
+
+
+#endif  /* __UART_H__ */

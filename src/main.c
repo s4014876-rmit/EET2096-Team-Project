@@ -29,9 +29,58 @@ typedef enum {
 // *****************************************************************************//
 void configRCC()
 {
-	RCC->AHB1ENR |= (1 << RCC_AHB1ENR_GPIOAEN_Pos);
-	RCC->AHB1ENR |= (1 << RCC_AHB1ENR_GPIOBEN_Pos);
-	RCC->AHB1ENR |= (1 << RCC_AHB1ENR_GPIOFEN_Pos);
+
+	const uint32_t AHB1ENR_Mask  = \
+		RCC_AHB1ENR_GPIOAEN        | \
+		RCC_AHB1ENR_GPIOBEN        | \
+		RCC_AHB1ENR_GPIOFEN;
+	
+	const uint32_t AHB1RSTR_Mask = \
+		RCC_AHB1RSTR_GPIOARST      | \
+		RCC_AHB1RSTR_GPIOBRST      | \
+		RCC_AHB1RSTR_GPIOFRST;
+	
+	const uint32_t APB1ENR_Mask  = \
+		RCC_APB1ENR_TIM6EN         | \
+		RCC_APB1ENR_USART3EN;
+	
+	const uint32_t APB1RSTR_Mask = \
+		RCC_APB1RSTR_TIM6RST       | \
+		RCC_APB1RSTR_USART3RST;
+
+  const uint32_t APB2ENR_Mask  = \
+    RCC_APB2EN_ADC3EN;
+    
+	const uint32_t APB2RSTR_Mask = \
+		RCC_APB2RSTR_ADC3RST;
+  
+	// AHB1 Enable
+	RCC->AHB1ENR  |= AHB1ENR_Mask;
+	RCC->AHB1RSTR |= AHB1RSTR_Mask;
+	__asm("NOP");
+	__asm("NOP");
+	RCC->AHB1RSTR &= ~AHB1RSTR_Mask;
+	__asm("NOP");
+	__asm("NOP");	
+
+	// APB1 Enable
+	RCC->APB1ENR  |= APB1ENR_Mask;
+	RCC->APB1RSTR |= APB1RSTR_Mask;
+	__asm("NOP");
+	__asm("NOP");
+	RCC->APB1RSTR &= ~APB1RSTR_Mask;
+	__asm("NOP");
+	__asm("NOP");
+  
+	// APB2 Enable
+	RCC->APB2ENR  |= APB2ENR_Mask;
+	RCC->APB2RSTR |= APB2RSTR_Mask;
+	__asm("NOP");
+	__asm("NOP");
+	RCC->APB2RSTR &= ~APB2RSTR_Mask;
+	__asm("NOP");
+	__asm("NOP");
+  
 }
 
 //******************************************************************************//
@@ -42,23 +91,19 @@ void configRCC()
 // *****************************************************************************//
 void configADC3()
 {
-	//Enable the perpheral interfacce
-	RCC->APB2ENR |= RCC_APB2ENR_ADC3EN;
-	
-	//Reset the peripheral interface
-	RCC->APB2RSTR |= RCC_APB2RSTR_ADCRST;
-	
-	//Wait for 2 cycles
-	__asm("NOP");
-	__asm("NOP");
-	
-	//Clear the reset
-	RCC->APB2RSTR &= ~(RCC_APB2RSTR_ADCRST);
-	
-	//Wait for 2 cycles
-	__asm("NOP");
-	__asm("NOP");
-	
+
+  // GPIO configuration.
+  const GPIO_Config gpio_adc = {
+    .port       = GPIOF,
+		.pin        = Pin10,				
+		.mode       = GPIO_Analog,			
+		.pullUpDown = GPIO_No_Pull,
+		.outputType = GPIO_Output_PushPull,
+		.speed      = GPIO_25MHz			
+	};
+  
+  gpio_configureGPIO(&gpio_adc);
+  
 	//Disable the battery sensing channel
 	ADC123_COMMON->CCR &= (~ADC_CCR_VBATE);
 	
@@ -84,25 +129,6 @@ void configADC3()
 	ADC3->CR2 |= ADC_CR2_ADON;
 }
 
-//******************************************************************************//
-// Function: sampleTemp()
-// Input : None
-// Return : Current temp 
-// Description : 
-// *****************************************************************************//
-uint16_t sample(void)
-{
-	uint16_t currentTemp = 0;
-	
-	//Trigger & ADC conversion
-	ADC3->CR2 |= ADC_CR2_SWSTART;
-	
-	while ((ADC3->SR & ADC_SR_EOC) == 0x00);
-	currentTemp = (ADC3->DR & 0x0000FFFF);
-	
-	return currentTemp;
-}
-
 
 //******************************************************************************//
 // Function: configGPIO()
@@ -112,6 +138,12 @@ uint16_t sample(void)
 // *****************************************************************************//
 void configGPIO()
 {
+
+  const GPIO_Config digital_input = {
+    .MODER
+  };
+
+  
 	//Digital Input
 	GPIOA->MODER &= ~(GPIO_MODER_MODE8_Msk);
 	GPIOA->MODER &= ~(GPIO_MODER_MODE10_Msk);
@@ -151,13 +183,6 @@ void configGPIO()
 	//Analog Input
 	GPIOF->MODER |= GPIO_MODER_MODE10_Msk;
 	GPIOF->PUPDR &= ~(GPIO_PUPDR_PUPD10_Msk);
-	
-	//Set AF7 for UART3
-	GPIOB->AFR[1] &= ~(0xF << 8);
-	GPIOB->AFR[1] |= (7 << 8);		//PB10 = AF7
-	
-	GPIOB->AFR[1] &= ~(0xF << 12);
-	GPIOB->AFR[1] |= (7 << 12);		//PB11 = AF7
 }
 
 //******************************************************************************//
