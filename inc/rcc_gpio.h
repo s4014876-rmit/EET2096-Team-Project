@@ -42,6 +42,8 @@ const GPIO_Config GPIO_Config_Output[GPIO_COUNT_OUTPUT] = {
 
 // Set up every GPIO that is used as generic I/O, not including peripherals that
 // may need extra actions during setup.
-void GPIO_Setup ();
+void configGPIO ();
+
+void configRCC ();
 
 #endif /* __GPIO_H__ */

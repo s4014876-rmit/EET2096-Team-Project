@@ -10,7 +10,7 @@
 #include "gpioControl.h"
 
 
-void UART_Setup()
+void configUART ()
 {
 	// Define GPIO configurations for UART.
 	GPIO_Config gpio_rx = {
@@ -32,17 +32,24 @@ void UART_Setup()
 	};
 
 	// Turn off UART for configuration.
-  uint32_t USART_ENABLE_MASK = USART_CR1_UE | USART_CR1_RE | USART_CR1_TE
+  const uint32_t USART_ENABLE_MASK = USART_CR1_UE | USART_CR1_RE | USART_CR1_TE
 	USART3->CR1 &= ~USART_ENABLE_MASK;
 
-	//TODO Change to the new baud rate
-	// Baud rate set to 31.25 kHz.
-	USART3->BRR &= ~USART_BRR_DIV_Mantissa;
-	USART3->BRR |= 84 << USART_BRR_DIV_Mantissa_Pos;
-
-	// Configure UART pins.
-	gpio_configureGPIO(&gpio_rx);
-	gpio_configureGPIO(&gpio_tx);
+  // Set up a 9-bit word with odd parity enabled.
+  // Stop bit is by default set to 1.
+  const uint32_t USART_CR1_MASK = \
+    (1U << USART_CR1_M_Pos)    |  \
+    (1U << USART_CR1_PCE_Pos)  |  \
+    (1U << USART_CR1_PS_Pos);
+  USART3->CR1 |= USART_CR1_MASK;
+  
+  // Baud rate set to 57,600 kbps
+  // 42e6 / (16 * 57600) ~= 45.5729
+  // Mantissa is 45.
+  // Fraction is 0.5729 * 16 ~= 9
+  USART3->BRR &= ~(USART_BRR_DIV_Mantissa | USART_BRR_DIV_Fraction);
+	USART3->BRR |= 45 << USART_BRR_DIV_Mantissa_Pos;
+  USART3->BRR |=  9 << USART_BRR_DIV_Fraction_Pos;
 
 	// Manually modify the AFRH/AFRL registers.
 	GPIOB->AFR[1] &= ~GPIO_AFRH_AFSEL11;
@@ -52,6 +59,10 @@ void UART_Setup()
 
 	// Enable UART device and receiver.
 	USART3->CR1 |= USART_ENABLE_MASK;
+  
+	// Configure UART pins.
+	gpio_configureGPIO(&gpio_rx);
+	gpio_configureGPIO(&gpio_tx);
 }
 
 

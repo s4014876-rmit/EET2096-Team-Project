@@ -1,3 +1,5 @@
+#ifndef __TEMPERATURE_H__
+#define __TEMPERATURE_H__
 
 // Samples the temperature currently.
 double Temperature_Sample();
@@ -5,3 +7,5 @@ double Temperature_Sample();
 // Loads a formatted string into the buffer pointer, displaying the temperature
 // given.
 void Temperature_String (char* buffer, double temperature);
+
+#endif /* __TEMPERATURE_H__ */

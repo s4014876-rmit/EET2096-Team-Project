@@ -62,6 +62,16 @@ void gpio_resetGPIO(GPIO_TypeDef * inputPort, GPIOPin inputPin)
 }
 
 
+void gpio_toggle (GPIO_Config* gpio)
+{
+  bool output_value = (gpio->port->ODR & (1U << pin)) ? true : false;
+  if (output_value) {
+    gpio_resetGPIO(gpio->port, gpio->pin);
+  } else {
+    gpio_setGPIO(gpio->port, gpio->pin);
+  }
+}
+
 //******************************************************************************//
 // Function: getPinValue()
 // Input : The GPIO port and pin to read

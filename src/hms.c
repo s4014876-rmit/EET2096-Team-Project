@@ -1,17 +1,7 @@
 #include "hms.h"
 
 
-
-HMS_t HMS_Get()
-{
-  static HMS_t hms;
-  return hms;
-}
-
-
-
-
-uint8_t HMS_HMS_To_Byte(HMS_t* hms)
+uint8_t HMS_HMS_To_Byte(HMS_Output_t* hms)
 {
 	uint8_t byte;
   byte = 0b01000001               | \
@@ -23,7 +13,7 @@ uint8_t HMS_HMS_To_Byte(HMS_t* hms)
 }
 
 
-bool HMS_Byte_Validate (uint8_t byte)
+static bool HMS_Byte_Validate (uint8_t byte)
 {
 	const uint8_t mask_high = 0b01000001;
 	const uint8_t mask_low  = 0b10000010;
@@ -38,7 +28,7 @@ bool HMS_Byte_Validate (uint8_t byte)
 }
 
 
-bool HMS_HMS_To_Byte (HMS_t* hms, uint8_t byte)
+bool HMS_Byte_To_HMS (HMS_Output_t* hms, uint8_t byte)
 {
 	// Return value according to Table 2,3 specifications.
 	if (HMS_Byte_Validate(byte)) {
@@ -55,7 +45,7 @@ bool HMS_HMS_To_Byte (HMS_t* hms, uint8_t byte)
 
 
 
-bool UART_Receive_HMS (HMS_t* hms)
+bool UART_Receive_HMS (HMS_Output_t* hms)
 {
   static bool header = false;
 		
@@ -93,7 +83,7 @@ typedef enum {
 
 
 Code__UART_Transmit_MMS_t
-UART_Transmit_HMS (HMS_t* hms, double temperature)
+UART_Transmit_HMS (HMS_Output_t* hms, double temperature)
 {
   Code__UART_Transmit_MMS_t code;
   static bool busy = false;
