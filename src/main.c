@@ -161,19 +161,6 @@ void configGPIO()
 }
 
 //******************************************************************************//
-// Function: configSysTick()
-// Input : None
-// Return : None
-// Description : 
-// *****************************************************************************//
-void configSysTick(void)
-{
-	SysTick->LOAD = 167999;
-	SysTick->VAL = 0;
-	SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
-}
-
-//******************************************************************************//
 // Function: main()
 // Input : None
 // Return : None
