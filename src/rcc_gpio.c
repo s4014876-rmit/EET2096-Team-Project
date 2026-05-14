@@ -8,7 +8,7 @@ void configGPIO ()
 
   // Configure inputs.
   for (uint8_t i = 0; i < GPIO_COUNT_INPUT; i++) {
-    GPIO_Config* gpio = &GPIO_Config_Output[i];
+    GPIO_Config* gpio = &GPIO_Config_Input[i];
     gpio_configureGPIO(gpio);
   }
 
@@ -56,7 +56,7 @@ void configRCC()
 		RCC_APB1RSTR_USART3RST;
 
   const uint32_t APB2ENR_Mask  = \
-    RCC_APB2EN_ADC3EN;
+    RCC_APB2ENR_ADC3EN;
     
 	const uint32_t APB2RSTR_Mask = \
 		RCC_APB2RSTR_ADC3RST;
