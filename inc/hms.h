@@ -4,11 +4,22 @@
 #include "stdint.h"
 #include "stdbool.h"
 
+
+typedef enum {
+  AC_Inactive,
+  AC_Heating,
+  AC_Cooling
+} AC_t;
+
 typedef struct {
 	bool light;
-	bool heater;
-	bool cooling;
+  AC_t ac;
 	bool fan;
+
+  bool _uart_received;
+  bool _uart_timeout;
+  uint8_t _uart_data;
+  uint32_t _uart_timestamp;
 } HMS_Output_t;
 
 // Converts HMS type to byte.

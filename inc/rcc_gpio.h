@@ -1,5 +1,5 @@
-#ifndef __GPIO_H__
-#define __GPIO_H__
+#ifndef __RCC_GPIO_H__
+#define __RCC_GPIO_H__
 
 #include "gpioControl.h"
 
@@ -21,6 +21,10 @@ const GPIO_Config GPIO_Config_Input[GPIO_COUNT_INPUT] = {
   { .port = GPIOB, .pin = Pin0,  GPIO_SETTINGS_DIGITAL_INPUT  }  // Fan Switch
 };
 
+GPIO_Config* GPIO_Light_Switch = &GPIO_Config_Input[0];
+GPIO_Config* GPIO_Light_Sensor = &GPIO_Config_Input[1];
+GPIO_Config* GPIO_Fan_Switch   = &GPIO_Config_Input[2];
+
 
 // GPIO Input Configuration
 
@@ -39,11 +43,17 @@ const GPIO_Config GPIO_Config_Output[GPIO_COUNT_OUTPUT] = {
 	{ .port = GPIOA, .pin = Pin9,  GPIO_SETTINGS_DIGITAL_OUTPUT }, // Light Control
 };
 
+GPIO_Config* GPIO_Heater        = &GPIO_Config_Input[0];
+GPIO_Config* GPIO_Cooling       = &GPIO_Config_Input[1];
+GPIO_Config* GPIO_Fan_Control   = &GPIO_Config_Input[2];
+GPIO_Config* GPIO_Light_Control = &GPIO_Config_Input[3];
+
 
 // Set up every GPIO that is used as generic I/O, not including peripherals that
 // may need extra actions during setup.
 void configGPIO ();
 
+// Setup RCC for all peripherals used.
 void configRCC ();
 
-#endif /* __GPIO_H__ */
+#endif /* __RCC_GPIO_H__ */

@@ -14,28 +14,25 @@
 #include "systick.h"
 
 
+HMS_t  global_hms;
+HMS_t* global_hms = &global_hms;
 
 
-//******************************************************************************//
-// Function: main()
-// Input : None
-// Return : None
-// Description : Entry point into the application.
-// *****************************************************************************//
+
 int main(void)
 {
+	// Bring up the GPIO for the power regulators.
+	boardSupport_init();
+
+  // Boilerplate setup code.
 	configRCC();
 	configGPIO();
 	configSysTick();
 	configADC3();
   configUART();
 	
-	// Bring up the GPIO for the power regulators.
-	boardSupport_init();
-	
 	SwitchState_t fanState = IDLE;
 	SwitchState_t lightState = IDLE;
-	uint32_t timeStamp = 0;
 	uint8_t fanOutput = 0;
 	uint8_t lightOutput = 0;
 	

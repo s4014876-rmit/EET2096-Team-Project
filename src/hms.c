@@ -4,11 +4,18 @@
 uint8_t HMS_HMS_To_Byte(HMS_Output_t* hms)
 {
 	uint8_t byte;
-  byte = 0b01000001               | \
+  byte = 0b01000001                | \
     ((hms->light)   ? 1U << 5 : 0) | \
-    ((hms->heater)  ? 1U << 4 : 0) | \
-    ((hms->cooling) ? 1U << 3 : 0) | \
     ((hms->fan)     ? 1U << 2 : 0);
+
+  // Handle AC condition.
+  if (hms->ac == AC_Heating) {
+    byte |= (hms->heater) ? 1U << 4 : 0;
+  }
+  else if (hms->ac == AC_Cooling) {
+    byte |= (hms->cooling) ? 1U << 3 : 0;
+  }
+
 	return byte;
 }
 
@@ -33,15 +40,82 @@ bool HMS_Byte_To_HMS (HMS_Output_t* hms, uint8_t byte)
 	// Return value according to Table 2,3 specifications.
 	if (HMS_Byte_Validate(byte)) {
 		hms->light   = (byte & (1U << 5)) ? true : false;
-		hms->heater  = (byte & (1U << 4)) ? true : false;
-		hms->cooling = (byte & (1U << 3)) ? true : false;
-		hms->fan     = (byte & (1U << 2)) ? true : false;
+
+    bool bool_heater  = (byte & (1U << 4)) ? true : false;
+    bool bool_cooling = (byte & (1U << 3)) ? true : false;
+
+    // Mutual exclusion.
+    if (byte_heater && byte_cooling) {
+      return false;
+    }
+    hms->heater  = byte_heater;
+    hms->cooling = byte_cooling;
+    
+    hms->fan     = (byte & (1U << 2)) ? true : false;
     return true;
 	}
 
   // Otherwise return false.
 	return false;
+
 }
+
+
+
+
+
+bool HMS_Update (HMS_t* hms)
+{
+  // Update temperature first.
+  hms->temperature = Temperature_Sample();
+  
+}
+
+
+
+
+
+
+void HMS_Update_AC (HMS_Output_t* hms)
+{
+  // If a UART message was received, apply settings and configure the timeout.
+  if (hms->_uart_received) {
+
+    HMS_t hms_copy;
+
+    // If a valid byte was received, apply the HMS settings.
+    if (HMS_Byte_To_HMS(&hms_copy, hms->_uart_data)) {
+      
+      // Copy byte settings over.
+      hms->light = hms_copy.light;
+      hms->ac    = hms_copy.ac;
+      hms->fan   = hms_copy.fan;
+
+      // Apply timeout due to UART.
+      hms->_uart_timeout  = true;
+      hms->_uart_timestamp = msTick;
+    }
+    // Reset received flag.
+    hms->_uart_received = false;
+  }
+
+  // If timeout is enabled, and have reached the time overflow, then reset it.
+  if (hms->uart_timeout && ((hms->_uart_timestamp - msTick) > 10000)) {
+    hms->uart_timeout = false;
+  }
+
+  // If there is no timeout, use the automatic control settings.
+  if (!hms->_uart_timeout) {
+
+
+    
+  }
+}
+
+
+
+
+
 
 
 
